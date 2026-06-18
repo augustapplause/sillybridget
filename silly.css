@@ -1,0 +1,6 @@
+body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding-top: 50px; }
+.quiz-card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+button { background: #4a90e2; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 16px; margin-top: 20px; width: 100%; }
+button:hover { background: #357abd; }
+input, select { padding: 10px; width: 90%; border: 2px solid #ddd; border-radius: 8px; margin-top: 10px; }
+#visual-area { margin: 20px 0; }
