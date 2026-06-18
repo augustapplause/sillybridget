@@ -1,67 +1,85 @@
 import streamlit as st
 import random
 
-def get_arithmetic(age):
-    is_word = age >= 9 and random.choice([True, False])
-    if is_word:
-        n = random.choice(["David", "Sarah", "Leo", "Mia"])
-        val1, val2 = random.randint(10, 50), random.randint(1, 9)
-        return (val1 - val2), f"If {n} has {val1} apples and loses {val2}, how many are left?"
-    else:
-        a, b = random.randint(1, 20), random.randint(1, 20)
-        return (a + b), f"What is {a} + {b}?"
+# UI Configuration
+st.set_page_config(page_title="Kids Math Master", page_icon="🧮", layout="centered")
 
-def get_time():
-    # 1:XX time. Minute hand positions 1-12
-    pos = random.randint(1, 12)
-    move = random.choice([1, 2, 3])
-    target = (pos + move) % 12 or 12
-    # URL Generator: using a placeholder for clock images
-    img_url = f"https://img.icons8.com/color/96/000000/clock--v{pos}.png" 
-    return target, f"If the minute hand is on {pos}, what number will it be on in {move*5} minutes?", img_url
+def get_arithmetic_question(age):
+    # Word problems or simple equations
+    if age >= 9 and random.random() > 0.5:
+        n = random.choice(["David", "Sarah", "Leo"])
+        v1, v2 = random.randint(10, 50), random.randint(1, 9)
+        return (v1 - v2), f"If {n} has {v1} apples and loses {v2}, how many are left?"
+    else:
+        v1, v2 = random.randint(1, 20), random.randint(1, 20)
+        return (v1 + v2), f"What is {v1} + {v2}?"
 
 def generate_question(age, category):
-    # Randomize question structure: Input, True/False, or Multiple Choice
-    q_style = random.choice(["input", "tf", "mc"])
+    style = random.choice(["input", "tf", "mc"])
     
     if category == "Arithmetic":
-        ans, q_text = get_arithmetic(age)
-        return {"ans": ans, "q": q_text, "style": q_style, "type": "Arithmetic"}
+        ans, q_text = get_arithmetic_question(age)
     elif category == "Time":
-        ans, q_text, img = get_time()
-        return {"ans": ans, "q": q_text, "style": q_style, "type": "Time", "img": img}
+        pos = random.randint(1, 12)
+        move = random.choice([1, 2, 3])
+        ans = (pos + move) % 12 or 12
+        q_text = f"If the minute hand is on {pos}, what number will it be on in {move*5} minutes?"
     else: # Geometry
-        shapes = [("Square", 4), ("Triangle", 3), ("Pentagon", 5), ("Hexagon", 6)]
-        name, sides = random.choice(shapes)
-        return {"ans": sides, "q": f"How many sides does a {name} have?", "style": q_style, "type": "Geometry"}
+        shapes = {"Square": 4, "Triangle": 3, "Pentagon": 5, "Hexagon": 6}
+        name = random.choice(list(shapes.keys()))
+        ans, q_text = shapes[name], f"How many sides does a {name} have?"
 
-# --- App Logic ---
-if 'state' not in st.session_state:
-    st.session_state.score = 0
-    st.session_state.q_count = 0
-    st.session_state.q_data = generate_question(7, "Arithmetic")
+    # Logical True/False formatting
+    if style == "tf":
+        is_true = random.choice([True, False])
+        display_ans = ans if is_true else ans + random.choice([-2, 2, 3])
+        return {"q": f"{q_text} Is the answer {display_ans}?", "ans": is_true, "style": "tf"}
+    
+    return {"q": q_text, "ans": ans, "style": style}
 
+# --- Main App ---
 st.title("🧮 Kids Math Master")
+st.markdown("---")
 
-# Display Question
-data = st.session_state.q_data
-st.write(f"**{data['q']}**")
+# Initialization
+if 'q_count' not in st.session_state:
+    st.session_state.update({'score': 0, 'q_count': 0, 'q_data': generate_question(7, "Arithmetic")})
 
-if "img" in data: st.image(data['img'], width=100)
+# Sidebar
+with st.sidebar:
+    st.header("⚙️ Settings")
+    age = st.slider("Age Level", 5, 12, 7)
+    cat = st.selectbox("Topic", ["Arithmetic", "Time", "Geometry"])
+    if st.button("🔄 Reset Quiz"):
+        st.session_state.update({'score': 0, 'q_count': 0, 'q_data': generate_question(age, cat)})
+        st.rerun()
 
-# Answer Format Logic
-user_ans = None
-if data['style'] == "tf":
-    user_ans = st.radio("True or False?", [True, False])
-    # Logic to map True/False to actual answer
-elif data['style'] == "mc":
-    options = sorted(list(set([data['ans'], data['ans']+2, data['ans']-1, data['ans']+5])))
-    user_ans = st.selectbox("Choose the correct answer:", options)
+# Quiz Logic
+if st.session_state.q_count < 10:
+    data = st.session_state.q_data
+    st.subheader(f"Question {st.session_state.q_count + 1} / 10")
+    st.info(data['q'])
+    
+    # Input Mapping
+    user_ans = None
+    if data['style'] == "tf":
+        user_ans = st.radio("Select your answer:", [True, False], index=None, horizontal=True)
+    elif data['style'] == "mc":
+        opts = sorted(list({data['ans'], data['ans']+2, data['ans']-1, data['ans']+3}))
+        user_ans = st.selectbox("Select your answer:", opts, index=None)
+    else:
+        user_ans = st.number_input("Enter your answer:", value=None, placeholder="Type here...")
+
+    if st.button("🚀 Submit Answer", type="primary"):
+        if user_ans == data['ans']:
+            st.session_state.score += 1
+            st.success("Correct! Well done! 🎉")
+        else:
+            st.error(f"Not quite. The correct answer was {data['ans']}.")
+        
+        st.session_state.q_count += 1
+        st.session_state.q_data = generate_question(age, cat)
+        st.button("Next Question", on_click=st.rerun)
 else:
-    user_ans = st.number_input("Answer:", value=None)
-
-if st.button("Submit"):
-    # Scoring logic...
-    st.session_state.q_count += 1
-    st.session_state.q_data = generate_question(7, "Arithmetic")
-    st.rerun()
+    st.balloons()
+    st.success(f"## Quiz Complete! Final Score: {st.session_state.score} / 10")
