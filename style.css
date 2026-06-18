@@ -1,0 +1,6 @@
+body { font-family: sans-serif; background: #f0f2f5; margin: 0; }
+header { background: #333; color: white; padding: 1rem; text-align: center; }
+.settings { display: flex; gap: 20px; justify-content: center; align-items: center; margin-top: 10px; }
+.quiz-card { background: white; margin: 2rem auto; padding: 2rem; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+#visual-area { margin: 20px 0; }
+button { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
