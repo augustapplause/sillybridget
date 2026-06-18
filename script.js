@@ -1,32 +1,38 @@
-const shapes = [
-    { name: "Square", sides: 4, svg: '<rect x="10" y="10" width="80" height="80" fill="none" stroke="#333" stroke-width="5"/>' },
-    { name: "Triangle", sides: 3, svg: '<polygon points="50,10 90,90 10,90" fill="none" stroke="#333" stroke-width="5"/>' }
-];
+let score = 0, qCount = 0, currentData = {};
+let age = 7;
 
-let currentData = {};
+function updateAge(val) { document.getElementById('ageVal').innerText = val; age = val; }
+
+function resetQuiz() { score = 0; qCount = 0; generateQuestion(); }
 
 function generateQuestion() {
-    const isGeo = Math.random() > 0.5;
-    if (isGeo) {
-        let s = shapes[Math.floor(Math.random() * shapes.length)];
-        currentData = { ans: s.sides, text: `How many sides does this ${s.name} have?`, svg: s.svg };
-        document.getElementById('visual-area').innerHTML = `<svg width="100" height="100">${s.svg}</svg>`;
-        document.getElementById('input-area').innerHTML = '<input type="number" id="user-ans">';
-    } else {
-        let a = Math.floor(Math.random() * 20) + 1;
-        let b = Math.floor(Math.random() * 20) + 1;
+    if (qCount >= 10) {
+        document.getElementById('quiz-area').innerHTML = `<h2>Quiz Complete!</h2><p>Final Score: ${score}/10</p><button onclick="location.reload()">Play Again</button>`;
+        return;
+    }
+    qCount++;
+    const cat = document.getElementById('category').value;
+    const diff = age * 2; // Difficulty scales with age
+
+    if (cat === "Arithmetic") {
+        let a = Math.floor(Math.random() * diff), b = Math.floor(Math.random() * diff);
         currentData = { ans: a + b, text: `What is ${a} + ${b}?` };
-        document.getElementById('visual-area').innerHTML = '';
-        document.getElementById('input-area').innerHTML = '<input type="number" id="user-ans">';
+    } else if (cat === "Geometry") {
+        const shapes = [{n:"Square", s:4}, {n:"Triangle", s:3}, {n:"Pentagon", s:5}];
+        let s = shapes[Math.floor(Math.random()*shapes.length)];
+        currentData = { ans: s.s, text: `How many sides does a ${s.n} have?` };
+    } else {
+        let h = Math.floor(Math.random() * 12) + 1;
+        currentData = { ans: h, text: `If the hour hand is on ${h}, what number will it be on in 1 hour?` };
     }
     document.getElementById('question').innerText = currentData.text;
-    document.getElementById('feedback').innerText = '';
 }
 
 function checkAnswer() {
-    let val = document.getElementById('user-ans').value;
-    document.getElementById('feedback').innerText = (parseInt(val) === currentData.ans) ? "Correct! 🎉" : "Try again!";
-    if(parseInt(val) === currentData.ans) setTimeout(generateQuestion, 1500);
+    let val = document.getElementById('user-ans')?.value;
+    if (parseInt(val) === currentData.ans) { score++; alert("Correct!"); }
+    else { alert("Wrong! The answer was " + currentData.ans); }
+    generateQuestion();
 }
-
+// Initial call
 generateQuestion();
